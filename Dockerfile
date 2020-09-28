@@ -1,13 +1,12 @@
 # Dockerfile for lighttpd
 
-FROM alpine
+FROM windriver/wrlx-image as build
 
-ENV LIGHTTPD_VERSION=1.4.57-r0
-
-RUN apk add --update --no-cache \
-	lighttpd=${LIGHTTPD_VERSION} \
-	lighttpd-mod_auth \
-  && rm -rf /var/cache/apk/*
+RUN dnf install -y lighttpd lighttpd-module-auth \
+  && sed -i -e 's/.*goal.add_protected.*filterm.*//;s/.*self.conf.protected_packages.*//' /usr/*/python*/site-packages/dnf/base.py \
+  && ln -sf /bin/busybox /bin/sh \
+  && dnf autoremove -y bash dnf openssh perl rpm \
+  && rm -rf /var/lib/rpm /var/lib/opkg /var/lib/dnf /var/cache/* /usr/lib/python*
 
 COPY etc/lighttpd/* /etc/lighttpd/
 COPY start.sh /usr/local/bin/
